@@ -1,0 +1,59 @@
+<div>
+    <h2>General</h2>
+    <div>
+        <span style="display: inline-block; min-width: 200px">Ponderation custom field:</span>
+        <select name="settings[field_id]" required>
+            <%= options_from_collection_for_select(IssueCustomField.all, :id, :name, settings['field_id']) %>
+        </select>
+    </div>
+    <h2>Fields weight</h2>
+    
+    <% for field in IssueCustomField.all do %>
+        <% if field.possible_values && field.possible_values.length > 0 %>
+            <h4><%= field.name %></h4>
+            <% for value in field.possible_values do %>
+                <div>
+                    <span style="display: inline-block; min-width: 200px; margin-left: 10%;"><%= value %></span>
+                    <input value="<%= settings['weights'] && settings['weights'][field.id.to_s] ? settings['weights'][field.id.to_s][value.to_s] : "" %>" 
+                        name="settings[weights][<%= field.id %>][<%= value %>]"
+                        placeholder="value">
+                </div>
+            <% end %>
+        <% elsif field.field_format === "bool" || field.field_format === "float" || field.field_format === "int"%>
+            <div>
+                <span style="display: inline-block; min-width: 200px"><%= field.name %></span>
+                <input value="<%= settings['weights'] ? settings['weights'][field.id.to_s] : "" %>" 
+                    name="settings[weights][<%= field.id %>]"
+                    placeholder="coef">
+            </div>
+        <% end %>
+    <% end %>
+
+    <% defaultFields = {:tracker_id => Tracker.all, :project_id => Project.all,  :category_id => IssueCategory.all, :status_id => IssueStatus.all, :priority_id => IssuePriority.all} %>
+
+    <% defaultFields.each do |name, field| %>
+        <h4><%= name %></h4>
+        <% for value in field do %>
+            <div>
+                <span style="display: inline-block; min-width: 200px; margin-left: 10%;"><%= value %></span>
+                <input value="<%= settings['weights'] && settings['weights'][name.to_s] ? settings['weights'][name.to_s][value.id.to_s] : '' %>" 
+                    name="settings[weights][<%= name %>][<%= value.id %>]"
+                    placeholder="value">
+            </div>
+        <% end %>
+    <% end %>
+    
+    <div>
+        <span style="display: inline-block; min-width: 200px">created_on</span>
+        <input value="<%= settings['weights'] ? settings['weights']['created_on'] : "" %>" 
+            name="settings[weights][created_on]"
+            placeholder="coef">
+    </div>
+
+    <div>
+        <span style="display: inline-block; min-width: 200px">updated_on</span>
+        <input value="<%= settings['weights'] ? settings['weights']['updated_on'] : "" %>" 
+            name="settings[weights][updated_on]"
+            placeholder="coef">
+    </div>
+</div>
