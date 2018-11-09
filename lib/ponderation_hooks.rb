@@ -16,20 +16,27 @@ class PonderationHooks < Redmine::Hook::ViewListener
     end
 
     def setPonderation(context)
+        if !Project.find(context[:issue][:project_id]).enabled_module('auto ponderation') || !context[:params][:issue][:custom_field_values]
+            return nil
+        end
 
         if Setting.plugin_ponderation['weights']
             ponderation = 0
 
             Setting.plugin_ponderation['weights'].each do |key, value|
-                if key.match(/\d+/) # is a custom field
-                    if value.is_a?(Hash) # the field is a selector
-                        Setting.plugin_ponderation['weights'][key].each do |skey, svalue|
-                            if skey === context[:params][:issue][:custom_field_values][key]
-                                ponderation += Setting.plugin_ponderation['weights'][key][skey].to_f
+                
+                # is a custom field
+                if key.match(/\d+/)
+                    if context[:params][:issue][:custom_field_values][key]
+                        if value.is_a?(Hash) # the field is a selector
+                            Setting.plugin_ponderation['weights'][key].each do |skey, svalue|
+                                if skey === context[:params][:issue][:custom_field_values][key]
+                                    ponderation += Setting.plugin_ponderation['weights'][key][skey].to_f
+                                end
                             end
+                        else
+                            ponderation += Setting.plugin_ponderation['weights'][key].to_f * context[:params][:issue][:custom_field_values][key].to_f
                         end
-                    else
-                        ponderation += Setting.plugin_ponderation['weights'][key].to_f * context[:params][:issue][:custom_field_values][key].to_f
                     end
                 else # is a default field
                     if value.is_a?(Hash) # the field is a selector
@@ -46,12 +53,10 @@ class PonderationHooks < Redmine::Hook::ViewListener
                         end
                     end
                 end
+                
             end
-
-            custom_field_values = context[:params][:issue][:custom_field_values]
-            custom_field_values[Setting.plugin_ponderation['field_id']] = ponderation
-            
-            context[:issue].custom_field_values = custom_field_values
+            print(ponderation)
+            context[:params][:issue][:custom_field_values][Setting.plugin_ponderation['field_id']] = ponderation
         end
     end
 end
