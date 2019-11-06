@@ -12,3 +12,7 @@
 
 - The plugin can be activated as a project module
 - Fixed a crash when an issue is created within a project without custom fields
+
+## 0.1.3
+
+- Code cleanup
